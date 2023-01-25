@@ -42,6 +42,22 @@ async function getImageResolution(imageSrc) {
     };
 }
 
+//
+// Get the base64 representation of the file content.
+//
+async function getBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            resolve(reader.result);
+        };
+        reader.onerror = error => {
+            reject(error);
+        };    
+    });
+} 
+
 export class App extends React.Component {
 
     constructor(props) {
@@ -57,10 +73,12 @@ export class App extends React.Component {
         for (const file of files) {
             const imageData = await loadFile(file);
             const imageResolution = await getImageResolution(imageData);
+            const base64 = await getBase64(file);
             fileInfo.push({
                 name: file.name,
                 size: file.size,
                 resolution: imageResolution,
+                base64: base64,
             });
         }
 
@@ -88,18 +106,22 @@ export class App extends React.Component {
                                     <th>Name</th>
                                     <th>Size</th>
                                     <th>Resolution</th>
+                                    <th>Base64</th>
                                 </tr>
                                 {this.state.files.map(file => {
                                     return (
                                         <tr key={file.name}>
                                             <td>
-                                            {file.name} 
+                                                {file.name} 
                                             </td>
                                             <td>
-                                            {file.size} 
+                                                {file.size} 
                                             </td>
                                             <td>
-                                            {file.resolution.width}x{file.resolution.height}
+                                                {file.resolution.width}x{file.resolution.height}
+                                            </td>
+                                            <td>
+                                                {file.base64.slice(0, 50)}...
                                             </td>
                                         </tr>
                                     );
