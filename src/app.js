@@ -27,6 +27,9 @@ function loadImage(imageSrc) {
         img.onload = () => {
             resolve(img);
         };
+        img.onerror = error => {
+            reject(error);
+        };
         img.src = imageSrc;
     });
 }
