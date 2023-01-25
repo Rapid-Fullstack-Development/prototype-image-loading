@@ -99,7 +99,7 @@ export class App extends React.Component {
 
                 {this.state.files !== undefined
                     && <div>
-                        <h2>File to upload:</h2>
+                        <h2>File to upload</h2>
                         <table>
                             <tbody>
                                 <tr>
@@ -128,6 +128,28 @@ export class App extends React.Component {
                                 })}
                             </tbody>
                         </table>
+
+                        <h2>Images</h2>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                flexWrap: "wrap",
+                            }}
+                            >
+                            {this.state.files.map(file => {
+                                return (
+                                    <div id={file.name}>
+                                        <img 
+                                            src={file.base64} 
+                                            style={{
+                                                height: "100px",
+                                            }}
+                                            />
+                                    </div>
+                                )
+                            })}
+                        </div>
                     </div>
                 }
 
