@@ -12,7 +12,7 @@ function loadFile(file) {
 
         reader.addEventListener('load', evt => {
             resolve(evt.target.result)
-        });            
+        });
         
         reader.readAsDataURL(file);
     });
@@ -42,22 +42,6 @@ async function getImageResolution(imageSrc) {
     };
 }
 
-//
-// Get the base64 representation of the file content.
-//
-async function getBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            resolve(reader.result);
-        };
-        reader.onerror = error => {
-            reject(error);
-        };    
-    });
-} 
-
 export class App extends React.Component {
 
     constructor(props) {
@@ -73,12 +57,11 @@ export class App extends React.Component {
         for (const file of files) {
             const imageData = await loadFile(file);
             const imageResolution = await getImageResolution(imageData);
-            const base64 = await getBase64(file);
             fileInfo.push({
                 name: file.name,
                 size: file.size,
                 resolution: imageResolution,
-                base64: base64,
+                imageData: imageData,
             });
         }
 
@@ -121,7 +104,7 @@ export class App extends React.Component {
                                                 {file.resolution.width}x{file.resolution.height}
                                             </td>
                                             <td>
-                                                {file.base64.slice(0, 50)}...
+                                                {file.imageData.slice(0, 50)}...
                                             </td>
                                         </tr>
                                     );
@@ -141,7 +124,7 @@ export class App extends React.Component {
                                 return (
                                     <div id={file.name}>
                                         <img 
-                                            src={file.base64} 
+                                            src={file.imageData} 
                                             style={{
                                                 height: "100px",
                                             }}
