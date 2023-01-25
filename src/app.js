@@ -93,6 +93,7 @@ export class App extends React.Component {
             const thumbnailData = await resizeImage(imageData, 25);
             fileInfo.push({
                 name: file.name,
+                contentType: file.type,
                 size: file.size,
                 resolution: imageResolution,
                 imageData: imageData,
@@ -122,6 +123,7 @@ export class App extends React.Component {
                             <tbody>
                                 <tr>
                                     <th>Name</th>
+                                    <th>Type</th>
                                     <th>Size</th>
                                     <th>Resolution</th>
                                     <th>Base64</th>
@@ -131,6 +133,9 @@ export class App extends React.Component {
                                         <tr key={file.name}>
                                             <td>
                                                 {file.name} 
+                                            </td>
+                                            <td>
+                                                {file.contentType} 
                                             </td>
                                             <td>
                                                 {file.size} 
