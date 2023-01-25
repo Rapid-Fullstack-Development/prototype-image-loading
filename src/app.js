@@ -83,26 +83,28 @@ export class App extends React.Component {
                     && <div>
                         <h2>File to upload:</h2>
                         <table>
-                            <tr>
-                                <th>Name</th>
-                                <th>Size</th>
-                                <th>Resolution</th>
-                            </tr>
-                            {this.state.files.map(file => {
-                                return (
-                                    <tr key={file.name}>
-                                        <td>
-                                        {file.name} 
-                                        </td>
-                                        <td>
-                                        {file.size} 
-                                        </td>
-                                        <td>
-                                        {file.resolution.width}x{file.resolution.height}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            <tbody>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Size</th>
+                                    <th>Resolution</th>
+                                </tr>
+                                {this.state.files.map(file => {
+                                    return (
+                                        <tr key={file.name}>
+                                            <td>
+                                            {file.name} 
+                                            </td>
+                                            <td>
+                                            {file.size} 
+                                            </td>
+                                            <td>
+                                            {file.resolution.width}x{file.resolution.height}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
                         </table>
                     </div>
                 }
