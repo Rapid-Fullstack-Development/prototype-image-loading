@@ -88,25 +88,44 @@ export class App extends React.Component {
 
     onFilesChanged = async files => {
 
-        const fileInfo = [];
-
-        for (const file of files) {
-            const imageData = await loadFile(file);
-            const imageResolution = await getImageResolution(imageData);
-            const thumbnailData = await resizeImage(imageData, 25);
-            fileInfo.push({
-                name: file.name,
-                contentType: file.type,
-                size: file.size,
-                resolution: imageResolution,
-                imageData: imageData,
-                thumbnailData: thumbnailData,
+        try {
+            const fileInfo = [];
+    
+            for (const file of files) {
+                try {
+                    const imageData = await loadFile(file);
+                    const fileDetails = {
+                        name: file.name,
+                        contentType: file.type,
+                        size: file.size,
+                        imageData: imageData,
+                    };
+                    if (fileDetails.contentType.startsWith("image/")) {
+                        const imageResolution = await getImageResolution(imageData);
+                        const thumbnailData = await resizeImage(imageData, 25);
+                        fileDetails.resolution = imageResolution;
+                        fileDetails.thumbnailData = thumbnailData;
+                    }
+                    fileInfo.push(fileDetails);
+                }
+                catch (error) {
+                    console.error(`Failed for ${file.name}`); 
+                    console.error(error);
+                }
+            }
+            
+            // todo:
+            // - get exif?
+            // - rev geocode?
+    
+            this.setState({
+                files: fileInfo,
             });
         }
-
-        this.setState({
-            files: fileInfo,
-        });
+        catch (error) {
+            console.error(`Failed!`); 
+            console.error(error);
+        }
     };
 
     render() {
@@ -144,7 +163,11 @@ export class App extends React.Component {
                                                 {file.size} 
                                             </td>
                                             <td>
-                                                {file.resolution.width}x{file.resolution.height}
+                                                {file.contentType.startsWith("image/")
+                                                    && <>
+                                                        {file.resolution.width}x{file.resolution.height}
+                                                    </>
+                                                }
                                             </td>
                                             <td>
                                                 {file.imageData.slice(0, 50)}...
@@ -163,7 +186,7 @@ export class App extends React.Component {
                                 flexWrap: "wrap",
                             }}
                             >
-                            {this.state.files.map(file => {
+                            {this.state.files.filter(file => file.contentType.startsWith("image/")).map(file => {
                                 return (
                                     <div id={file.name + "-thumb"}>
                                         <img 
@@ -185,7 +208,7 @@ export class App extends React.Component {
                                 flexWrap: "wrap",
                             }}
                             >
-                            {this.state.files.map(file => {
+                            {this.state.files.filter(file => file.contentType.startsWith("image/")).map(file => {
                                 return (
                                     <div id={file.name + "-full"}>
                                         <img 
@@ -198,6 +221,7 @@ export class App extends React.Component {
                                 )
                             })}
                         </div>
+
                     </div>
                 }
 
