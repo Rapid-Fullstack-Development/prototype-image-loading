@@ -1,4 +1,5 @@
 import React from "react";
+import EXIF from 'exif-js';
 
 //
 // Loads a file to a data URL.
@@ -78,6 +79,17 @@ function resizeImage(imageData, maxSize) {
     });
 }
 
+//
+// Retreives exif data from the file.
+//
+function getExifData(file) {
+    return new Promise((resolve, reject) => {
+        EXIF.getData(file, function () { // ! Don't change this to an arrow function. It might break the way this works.
+            resolve(EXIF.getAllTags(this));
+        });
+    });
+}
+
 export class App extends React.Component {
 
     constructor(props) {
@@ -105,6 +117,7 @@ export class App extends React.Component {
                         const thumbnailData = await resizeImage(imageData, 25);
                         fileDetails.resolution = imageResolution;
                         fileDetails.thumbnailData = thumbnailData;
+                        fileDetails.exif = await getExifData(file);
                     }
                     fileInfo.push(fileDetails);
                 }
@@ -114,10 +127,6 @@ export class App extends React.Component {
                 }
             }
             
-            // todo:
-            // - get exif?
-            // - rev geocode?
-    
             this.setState({
                 files: fileInfo,
             });
@@ -217,6 +226,19 @@ export class App extends React.Component {
                                                 height: "100px",
                                             }}
                                             />
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        <h2>Exif</h2>
+                        <div>
+                            {this.state.files.filter(file => file.exif).map(file => {
+                                return (
+                                    <div id={file.name + "-exif"}>
+                                        <pre>
+                                            {JSON.stringify(file.exif, null, 4)}
+                                        </pre>
                                     </div>
                                 )
                             })}
