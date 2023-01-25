@@ -42,6 +42,39 @@ async function getImageResolution(imageSrc) {
     };
 }
 
+//
+// Resizes an image.
+//
+// https://stackoverflow.com/a/43354901/25868
+//
+function resizeImage(imageData, maxSize) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+            const oc = document.createElement('canvas'); // As long as we don't reference this it will be garbage collected.
+            const octx = oc.getContext('2d')!;
+            oc.width = img.width;
+            oc.height = img.height;
+            octx.drawImage(img, 0, 0);
+
+            // Commented out code could be useful.
+            // if( img.width > img.height) {
+            //     oc.height = (img.height / img.width) * max;
+            //     oc.width = max;
+            // } 
+            // else {
+                oc.width = (img.width / img.height) * maxSize;
+                oc.height = maxSize;
+            // }
+
+            octx.drawImage(oc, 0, 0, oc.width, oc.height);
+            octx.drawImage(img, 0, 0, oc.width, oc.height);
+            resolve(oc.toDataURL());
+        };
+        img.src = imageData;
+    });
+}
+
 export class App extends React.Component {
 
     constructor(props) {
@@ -57,11 +90,13 @@ export class App extends React.Component {
         for (const file of files) {
             const imageData = await loadFile(file);
             const imageResolution = await getImageResolution(imageData);
+            const thumbnailData = await resizeImage(imageData, 25);
             fileInfo.push({
                 name: file.name,
                 size: file.size,
                 resolution: imageResolution,
                 imageData: imageData,
+                thumbnailData: thumbnailData,
             });
         }
 
@@ -112,6 +147,28 @@ export class App extends React.Component {
                             </tbody>
                         </table>
 
+                        <h2>Thumbnails</h2>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                flexWrap: "wrap",
+                            }}
+                            >
+                            {this.state.files.map(file => {
+                                return (
+                                    <div id={file.name + "-thumb"}>
+                                        <img 
+                                            src={file.thumbnailData}
+                                            style={{
+                                                height: "100px",
+                                            }}
+                                            />
+                                    </div>
+                                )
+                            })}
+                        </div>
+
                         <h2>Images</h2>
                         <div
                             style={{
@@ -122,7 +179,7 @@ export class App extends React.Component {
                             >
                             {this.state.files.map(file => {
                                 return (
-                                    <div id={file.name}>
+                                    <div id={file.name + "-full"}>
                                         <img 
                                             src={file.imageData} 
                                             style={{
