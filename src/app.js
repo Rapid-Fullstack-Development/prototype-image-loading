@@ -1,5 +1,58 @@
 import React from "react";
 import EXIF from 'exif-js';
+import { Loader } from "@googlemaps/js-api-loader";
+
+//
+// https://developers.google.com/maps/documentation/javascript
+// 
+// Setup up project: https://developers.google.com/maps/documentation/javascript/cloud-setup
+// Using API keys: https://developers.google.com/maps/documentation/javascript/get-api-key
+// Reverse geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-reverse
+// Had to wait 10 mins for the API key to come online: https://stackoverflow.com/a/27463276/25868
+// I had to enable Maps, Places and Geocoding APIs to get the key to work.
+//
+
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+if (GOOGLE_API_KEY) {
+    console.log("Loading Google API");
+
+    const loader = new Loader({
+        apiKey: GOOGLE_API_KEY,
+        version: "weekly",
+    });
+      
+    loader.load().then(() => {
+        console.log(`Google maps is loaded`);
+    });
+}
+
+//
+// Reverse geocode the requested location (needs lat and lng fields).
+//
+// You must set an approriately configured Google API key in the environment variable GOOGLE_API_KEY for this to work.
+//
+function reverseGeocode(location) {
+    return new Promise((resolve, reject) => {
+        if (!google) {
+            // Google API key was not provided and the Google API was not loaded.
+            resolve(undefined);
+            return;
+        }
+
+        const geocoder = new google.maps.Geocoder();
+        geocoder
+            .geocode({ location: location })
+            .then(response => {
+                if (response.results && response.results.length > 0) {
+                    resolve(response.results[0].formatted_address);
+                }
+                else {
+                    resolve(undefined);
+                }
+            })
+            .catch(reject);
+    });
+}
 
 //
 // Loads a file to a data URL.
@@ -82,6 +135,8 @@ function resizeImage(imageData, maxSize) {
 //
 // Retreives exif data from the file.
 //
+// https://github.com/exif-js/exif-js
+//
 function getExifData(file) {
     return new Promise((resolve, reject) => {
         EXIF.getData(file, function () { // ! Don't change this to an arrow function. It might break the way this works.
@@ -118,6 +173,31 @@ export class App extends React.Component {
                         fileDetails.resolution = imageResolution;
                         fileDetails.thumbnailData = thumbnailData;
                         fileDetails.exif = await getExifData(file);
+                        if (fileDetails.exif.GPSLatitude && fileDetails.exif.GPSLongitude) {
+                            // https://gis.stackexchange.com/a/273402
+                            function convertToDegrees([degrees, minutes, seconds]) {
+                                var deg = degrees.numerator/degrees.denominator;
+                                var min = minutes.numerator/minutes.denominator;
+                                var sec = seconds.numerator/seconds.denominator;
+                                return deg + (min/60) + (sec/3600);
+                            }
+                            const coordinates = {
+                                lat: convertToDegrees(fileDetails.exif.GPSLatitude),
+                                lng: convertToDegrees(fileDetails.exif.GPSLongitude),
+                            };
+                            
+                            if (fileDetails.exif.GPSLatitudeRef === "S") {
+                                // If the latitude reference is "S", the latitude is negative
+                                coordinates.lat = coordinates.lat * -1;
+                            }
+
+                            if (fileDetails.exif.GPSLongitudeRef === "W") {
+                                // If the longitude reference is "W", the longitude is negative (thanks ChatGPT!)
+                                coordinates.lng = coordinates.lng * -1;
+                            }
+
+                            fileDetails.location = await reverseGeocode(coordinates);
+                        }
                     }
                     fileInfo.push(fileDetails);
                 }
@@ -244,6 +324,18 @@ export class App extends React.Component {
                             })}
                         </div>
 
+                        <h2>Location</h2>
+                        <div>
+                            {this.state.files.filter(file => file.location).map(file => {
+                                return (
+                                    <div id={file.name + "-location"}>
+                                        <pre>
+                                            {file.location}
+                                        </pre>
+                                    </div>
+                                )
+                            })}
+                        </div>
                     </div>
                 }
 

@@ -1,6 +1,6 @@
 # prototype-image-loading
 
-A prototype for loading an image in the browser from a file input to get it's resolution.
+A prototype for loading an image in the browser from a file input to get it's resolution, creating a thumbnail, extracting exif data and reverse geocoding its location.
 
 This code was created to support the book [Rapid Fullstack Development](https://rapidfullstackdevelopment.com/).
 
@@ -16,6 +16,22 @@ Clone this repo, change into the directory and install dependencies:
 
 ```bash
 npm install
+```
+
+## Enable reverse geocoding
+
+To enable the reverse geocoding feature you need to create a Google API key and enable the APIs Maps, Geocoding and Places.
+
+Then set your API key in the following environment variable:
+
+```bash
+export GOOGLE_API_KEY=<your-google-api-key>
+```
+
+Or on Windows:
+
+```bash
+set GOOGLE_API_KEY=<your-google-api-key>
 ```
 
 ## Run the Parcel dev server
