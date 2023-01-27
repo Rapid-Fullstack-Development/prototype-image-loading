@@ -33,7 +33,7 @@ if (GOOGLE_API_KEY) {
 //
 function reverseGeocode(location) {
     return new Promise((resolve, reject) => {
-        if (!google) {
+        if (typeof(google) === "undefined") {
             // Google API key was not provided and the Google API was not loaded.
             resolve(undefined);
             return;
